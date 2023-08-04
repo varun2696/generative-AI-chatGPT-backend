@@ -1,60 +1,64 @@
 const express = require('express');
-const axios = require('axios');
 require('dotenv').config();
-
-const { port } = process.env;
-
-// const {openaiApiKey} = process.env
-
-// const { Configuration, OpenAIApi } = require("openai");
-
-// const configuration = new Configuration({
-//     apiKey: process.env.openaiApiKey,
-// });
-
-// const openai = new OpenAIApi(configuration);
-// // console.log(openai)
+const cors = require('cors');
 
 const app = express();
 app.use(express.json());
+app.use(cors())
+
+
+// this is for integrating openAi with node.js
+const { Configuration, OpenAIApi } = require("openai");
+
+const configuration = new Configuration({
+    apiKey: process.env.API_KEY,
+});
+
+const openai = new OpenAIApi(configuration);
+
+
 
 app.get('/', (req, res) => {
-    res.send("Welcome to Quotes Generator");
+    res.send({ "hello": "Welcome to Quotes Generator" });
 })
 
 
-app.get('/quotes', async (req, res) => {
-    try {
-        const keyword = req.query.keyword;
-        console.log(keyword)
-        const prompt = `Quote about ${keyword}\n`
-        const res = await axios.post('https://api.openai.com/v1/chat/completions', {
-            prompt: {
-                text: prompt,
-                model: "text-davinci-002",
-            },
-            max_tokens: 100,
-            temperature: 0.7,
-            n: 1,
-            "model": "gpt-3.5-turbo",
-            "messages": [{ "role": "user", "content": "Say this is a test!" }],
-        }, {
-            headers: {
-                'Authorization': `Bearer ${process.env.API_KEY}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        const quote = response.data.choices[0].text.trim();
-        console.log(quote)
-        // res.send({"Quote": quote})
-        res.json({ quote });
+app.get("/generateChat", async (req, res) => {
+    const keyword = req.body.keyword;
 
+    try {
+        const generatedChat = await generateCompletion(keyword);
+        res.status(200).json({ generatedChat });
+        // res.send(generatedChat)
     } catch (error) {
-        console.error('Error:', error.response.data);
-        res.status(500).json({ error: 'Something went wrong' });
+        // console.log(error)
+        res.status(500).json({ error: 'An error occurred while generating chat completion.' });
     }
 })
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`)
+
+async function generateCompletion(prompt) {
+    try {
+        const completion = await openai.createCompletion({
+            model: "text-davinci-003",
+            prompt: prompt,
+            max_tokens: 2048,
+            temperature: 1,
+        });
+
+        const chat = completion.data.choices[0].text.trim();
+        // console.log(chat)
+        return chat;
+    } catch (error) {
+        // console.error('Error:', error.response.data);
+        return { error: 'Something went wrong' }
+    }
+}
+
+
+app.listen(process.env.port, () => {
+    console.log(`Server is running on port ${process.env.port}`)
 })
+
+
+
