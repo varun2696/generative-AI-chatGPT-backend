@@ -17,13 +17,12 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 
-
 app.get('/', (req, res) => {
     res.send({ "hello": "Welcome to Quotes Generator" });
 })
 
 
-app.get("/generateChat", async (req, res) => {
+app.post("/generateChat", async (req, res) => {
     const keyword = req.body.keyword;
 
     try {
