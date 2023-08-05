@@ -7,6 +7,7 @@ app.use(express.json());
 app.use(cors())
 
 
+
 // this is for integrating openAi with node.js
 const { Configuration, OpenAIApi } = require("openai");
 
@@ -22,6 +23,7 @@ app.get('/', (req, res) => {
 })
 
 
+// for chat generator
 app.post("/generateChat", async (req, res) => {
     const keyword = req.body.keyword;
 
@@ -34,6 +36,21 @@ app.post("/generateChat", async (req, res) => {
         res.status(500).json({ error: 'An error occurred while generating chat completion.' });
     }
 })
+
+
+
+// for code converter 
+app.post("/codeConverter", async (req, res) => {
+    const {data} = req.body;
+    try {
+        const convertedCode = await generateCompletion(data);
+        res.status(200).json({ convertedCode });
+    } catch (error) {
+        // console.log(error)
+        res.status(500).json({ error: 'An error occurred while generating chat completion.' });
+    }
+})
+
 
 
 async function generateCompletion(prompt) {
